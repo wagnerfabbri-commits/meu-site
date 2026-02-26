@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>🎉 Reserva de Mesas — Feijoada</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{min-height:100vh;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);font-family:Georgia,serif;color:#fff;padding-bottom:40px}
+  button{cursor:pointer;font-family:Georgia,serif}
+  input{font-family:Georgia,serif}
+
+/* Header */
+#header{background:linear-gradient(90deg,#0f3460,#533483);padding:16px 24px;box-shadow:0 4px 20px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+#header h1{font-size:22px;font-weight:700;color:#FFD700;letter-spacing:1px}
+#header p{font-size:12px;color:#aaa;margin-top:2px}
+#header-btns{display:flex;gap:10px;align-items:center}
+.admin-badge{background:rgba(255,215,0,.13);border:1px solid #FFD700;border-radius:8px;padding:4px 12px;font-size:12px;color:#FFD700}
+.badge-count{background:#e53935;border-radius:50%;padding:1px 6px;margin-left:6px}
+#btn-admin{background:#FFD700;color:#1a1a2e;border:none;border-radius:8px;padding:8px 16px;font-weight:700;font-size:13px}
+#btn-logout{background:#e53935;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-weight:700;font-size:13px;display:none}
+
+/* Legend */
+#legend{display:flex;gap:16px;padding:12px 24px;background:rgba(255,255,255,.05);justify-content:center;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:13px;color:#ddd}
+.legend-dot{width:18px;height:18px;border-radius:4px}
+
+/* Admin panel */
+#admin-panel{margin:16px 24px;background:rgba(255,193,7,.1);border:1px solid #FFC107;border-radius:12px;padding:16px;display:none}
+#admin-panel h2{color:#FFC107;font-weight:700;margin-bottom:12px;font-size:15px}
+.pending-item{background:rgba(0,0,0,.3);border-radius:8px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;flex-wrap:wrap;gap:10px}
+.pending-info{flex:1;min-width:160px;font-size:14px}
+.pending-info .mesa-label{color:#FFC107;font-weight:700}
+.pending-info .guest-note{color:#bbb;font-size:12px;margin-top:4px}
+.pending-btns{display:flex;gap:8px}
+.btn-approve{background:#4CAF50;color:#fff;border:none;border-radius:6px;padding:6px 14px;font-weight:700;font-size:13px}
+.btn-reject{background:#e53935;color:#fff;border:none;border-radius:6px;padding:6px 14px;font-weight:700;font-size:13px}
+
+/* Admin table detail */
+#admin-detail{margin:0 24px 16px;background:rgba(83,52,131,.3);border:1px solid #7b5ea7;border-radius:12px;padding:16px;display:none}
+#admin-detail h3{color:#CE93D8;font-weight:700;margin-bottom:8px}
+#admin-detail p{color:#ddd;font-size:14px;margin-bottom:4px}
+.detail-btns{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.btn-free{background:#e53935;color:#fff;border:none;border-radius:6px;padding:6px 14px;font-weight:700}
+.btn-close{background:#555;color:#fff;border:none;border-radius:6px;padding:6px 14px}
+
+/* Map */
+#map-wrapper{padding:16px 24px;overflow-x:auto}
+#map-inner{display:flex;gap:24px;min-width:600px;align-items:flex-start}
+#left-section{flex:1}
+.feijoada-label{background:rgba(255,255,255,.08);border-radius:8px;padding:6px 12px;text-align:center;color:#FFD700;font-size:14px;font-weight:700;margin-bottom:14px;letter-spacing:2px}
+#grid{display:flex;flex-direction:column;gap:8px}
+.grid-row{display:flex;gap:8px}
+.table-cell{width:38px;height:38px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2px solid transparent;box-shadow:0 2px 4px rgba(0,0,0,.3);transition:all .15s;user-select:none;flex-shrink:0}
+.table-cell.available{background:#4CAF50;color:#fff;cursor:pointer}
+.table-cell.available:hover{transform:scale(1.1);box-shadow:0 4px 12px rgba(76,175,80,.5)}
+.table-cell.pending{background:#FFC107;color:#333;cursor:pointer}
+.table-cell.pending:hover{transform:scale(1.08)}
+.table-cell.reserved{background:#e53935;color:#fff}
+.table-cell.selected{background:#FF9800!important;color:#fff!important;border-color:#fff;box-shadow:0 0 10px #FF9800}
+.table-spacer{width:38px;height:38px;flex-shrink:0}
+#dance-stage{margin-top:16px;display:flex;flex-direction:column;align-items:center}
+.dance-floor{background:#FFC107;border-radius:10px;width:70%;padding:30px 0;text-align:center;color:#333;font-weight:700;font-size:16px;box-shadow:0 4px 20px rgba(255,193,7,.4)}
+.stage{background:#1565C0;border-radius:0 0 12px 12px;width:45%;padding:14px 0;text-align:center;color:#fff;font-weight:700;font-size:15px;box-shadow:0 4px 16px rgba(21,101,192,.5)}
+#right-section{display:flex;gap:8px}
+.right-col{display:flex;flex-direction:column;gap:8px}
+
+/* Stats */
+#stats{display:flex;gap:12px;padding:16px 24px;justify-content:center;flex-wrap:wrap}
+.stat-box{background:rgba(255,255,255,.07);border-radius:10px;padding:10px 20px;text-align:center;min-width:90px}
+.stat-num{font-size:22px;font-weight:700}
+.stat-label{font-size:12px;color:#aaa}
+
+/* Modal overlay */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;display:none}
+.modal-overlay.active{display:flex}
+.modal-box{background:linear-gradient(135deg,#1e1e3f,#2d1b69);border:1px solid #7b5ea7;border-radius:16px;padding:28px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.8)}
+.modal-title{font-size:20px;font-weight:700;color:#FFD700;margin-bottom:4px}
+.modal-subtitle{color:#aaa;font-size:13px;margin-bottom:20px}
+.form-field{margin-bottom:14px}
+.form-field label{display:block;font-size:12px;color:#CE93D8;margin-bottom:4px;font-weight:600}
+.form-field input{width:100%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:10px 12px;color:#fff;font-size:14px;outline:none}
+.form-field input:focus{border-color:#CE93D8}
+.modal-btns{display:flex;gap:10px;margin-top:20px}
+.btn-submit{flex:1;background:linear-gradient(90deg,#FFD700,#FF8F00);color:#1a1a2e;border:none;border-radius:10px;padding:12px;font-weight:800;font-size:15px}
+.btn-cancel{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:12px 16px;font-size:15px}
+.btn-enter{flex:1;background:linear-gradient(90deg,#FFD700,#FF8F00);color:#1a1a2e;border:none;border-radius:10px;padding:12px;font-weight:800;font-size:15px}
+.pw-hint{color:#666;font-size:11px;margin-top:12px;text-align:center}
+.error-msg{color:#e53935;font-size:13px;margin-bottom:8px;display:none}
+
+/* Toast */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);color:#fff;border-radius:10px;padding:12px 24px;font-size:14px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.5);z-index:200;white-space:nowrap;display:none;transition:opacity .3s}
+#toast.success{background:#388E3C}
+#toast.error{background:#e53935}
+#toast.info{background:#1565C0}
+</style>
+
+</head>
+<body>
+
+<!-- HEADER -->
+
+<div id="header">
+  <div>
+    <h1>🎉 Reserva de Mesas</h1>
+    <p>Clique em uma mesa verde para reservar</p>
+  </div>
+  <div id="header-btns">
+    <div id="admin-badge" class="admin-badge" style="display:none">🔑 Modo Admin <span id="pending-count-badge" class="badge-count" style="display:none">0</span></div>
+    <button id="btn-admin" onclick="openAdminLogin()">Admin 🔑</button>
+    <button id="btn-logout" onclick="logoutAdmin()">Sair</button>
+  </div>
+</div>
+
+<!-- LEGEND -->
+
+<div id="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#4CAF50"></div> Disponível</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#FFC107"></div> Aguardando</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#e53935"></div> Reservada</div>
+</div>
+
+<!-- ADMIN PENDING PANEL -->
+
+<div id="admin-panel">
+  <h2>⏳ Aguardando Validação (<span id="pending-count">0</span>)</h2>
+  <div id="pending-list"></div>
+</div>
+
+<!-- ADMIN DETAIL PANEL -->
+
+<div id="admin-detail">
+  <h3 id="detail-title"></h3>
+  <p id="detail-info1"></p>
+  <p id="detail-info2"></p>
+  <div class="detail-btns">
+    <button class="btn-approve" id="detail-approve" onclick="adminApproveSelected()" style="display:none">✓ Confirmar</button>
+    <button class="btn-free" onclick="adminFreeSelected()">🗑 Liberar mesa</button>
+    <button class="btn-close" onclick="closeAdminDetail()">Fechar</button>
+  </div>
+</div>
+
+<!-- MAP -->
+
+<div id="map-wrapper">
+  <div id="map-inner">
+    <div id="left-section">
+      <div class="feijoada-label">🍲 FEIJOADA</div>
+      <div id="grid"></div>
+      <div id="dance-stage">
+        <div class="dance-floor">💃 Pista de Dança 🕺</div>
+        <div class="stage">🎤 Palco</div>
+      </div>
+    </div>
+    <div id="right-section"></div>
+  </div>
+</div>
+
+<!-- STATS -->
+
+<div id="stats">
+  <div class="stat-box"><div class="stat-num" id="stat-available" style="color:#4CAF50">0</div><div class="stat-label">Disponível</div></div>
+  <div class="stat-box"><div class="stat-num" id="stat-pending" style="color:#FFC107">0</div><div class="stat-label">Aguardando</div></div>
+  <div class="stat-box"><div class="stat-num" id="stat-reserved" style="color:#e53935">0</div><div class="stat-label">Reservada</div></div>
+</div>
+
+<!-- RESERVATION FORM MODAL -->
+
+<div class="modal-overlay" id="form-modal">
+  <div class="modal-box">
+    <div class="modal-title" id="form-title">🍽️ Reservar Mesa</div>
+    <div class="modal-subtitle">Preencha seus dados para solicitar a reserva</div>
+    <div class="form-field">
+      <label>Nome do Diretor *</label>
+      <input type="text" id="f-name" placeholder="Nome do Diretor"/>
+    </div>
+    <div class="form-field">
+      <label>Telefone / WhatsApp *</label>
+      <input type="tel" id="f-phone" placeholder="(00) 00000-0000"/>
+    </div>
+    <div class="form-field">
+      <label>Número de pessoas</label>
+      <input type="number" id="f-guests" value="1" min="1"/>
+    </div>
+    <div class="form-field">
+      <label>Nome do sócio ou não sócio responsável pela mesa *</label>
+      <input type="text" id="f-note" placeholder="Nome do responsável..."/>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-submit" id="btn-submit" onclick="submitReservation()">✓ Solicitar Reserva</button>
+      <button class="btn-cancel" onclick="closeForm()">✗</button>
+    </div>
+  </div>
+</div>
+
+<!-- USER ACCESS MODAL -->
+
+<div class="modal-overlay" id="user-login-modal">
+  <div class="modal-box" style="max-width:340px">
+    <div class="modal-title">🎉 Acesso ao Sistema</div>
+    <div class="modal-subtitle">Digite a senha para reservar uma mesa</div>
+    <input type="password" id="user-pw" placeholder="Senha de acesso..." style="width:100%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:10px 12px;color:#fff;font-size:14px;outline:none;margin-bottom:8px" onkeydown="if(event.key==='Enter') loginUser()"/>
+    <div class="error-msg" id="user-pw-error">Senha incorreta!</div>
+    <div class="modal-btns">
+      <button class="btn-enter" onclick="loginUser()">Entrar</button>
+      <button class="btn-cancel" onclick="closeUserLogin()">✗</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN LOGIN MODAL -->
+
+<div class="modal-overlay" id="admin-login-modal">
+  <div class="modal-box" style="max-width:340px">
+    <div class="modal-title">🔑 Área do Administrador</div>
+    <div class="modal-subtitle">Digite a senha para acessar</div>
+    <input type="password" id="admin-pw" placeholder="Senha..." style="width:100%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:10px 12px;color:#fff;font-size:14px;outline:none;margin-bottom:8px" onkeydown="if(event.key==='Enter') loginAdmin()"/>
+    <div class="error-msg" id="admin-pw-error">Senha incorreta!</div>
+    <div class="modal-btns">
+      <button class="btn-enter" onclick="loginAdmin()">Entrar</button>
+      <button class="btn-cancel" onclick="closeAdminLogin()">✗</button>
+    </div>
+    <div class="pw-hint">Senha padrão: admin123</div>
+  </div>
+</div>
+
+<!-- TOAST -->
+
+<div id="toast"></div>
+
+<script>
+// ==================== DATA ====================
+const ADMIN_PASSWORD = "admin123";
+const USER_PASSWORD  = "tipuana80";
+
+const INITIAL_TABLES = [
+  {id:1},{id:2},{id:3},{id:4},{id:5},{id:6},{id:7},{id:8},{id:9},
+  {id:10},{id:11},{id:12},{id:13},{id:14},{id:15},{id:16},
+  {id:17},{id:18},{id:19},{id:20},{id:21},{id:22},{id:23},{id:24},{id:25},
+  {id:26},{id:27},{id:28},{id:29},{id:30},{id:31},{id:32},{id:33},{id:34},
+  {id:35},{id:36},{id:37},{id:38},{id:39},{id:40},{id:41},{id:42},{id:43},
+  {id:44},{id:45},{id:46},{id:47},{id:48},{id:49},{id:50},{id:51},{id:52},
+  {id:53},{id:54},{id:55},{id:56},{id:57},{id:58},{id:59},{id:60},{id:61},
+  {id:62},{id:63},{id:64},{id:65},{id:66},{id:67},{id:68},{id:69},{id:70},{id:71},{id:72},{id:73},
+  {id:74},{id:75},{id:76},{id:77},{id:78},{id:79},{id:80},{id:81},{id:82},{id:83},{id:84},{id:85},{id:86},{id:87},
+  {id:88},{id:89},{id:90},{id:91},{id:92},{id:93},{id:94},{id:95},{id:96},{id:97},{id:98},{id:99},{id:100},{id:101}
+];
+
+// Grid layout for left section (null = spacer)
+const LEFT_GRID = [
+  [1,2,3,4,5,6,7,8,9],
+  [10,11,null,12,13,null,14,15,16],
+  [17,18,19,20,21,22,23,24,25],
+  [26,27,28,29,30,31,32,33,34],
+  [35,36,37,38,39,40,41,42,43],
+  [44,45,46,47,48,49,50,51,52],
+  [53,54,55,56,57,58,59,60,61]
+];
+
+// Right section mapping: col -> list of ids top to bottom
+const RIGHT_COLS = [
+  [62,63,64,65,66,67,68,69,70,71,72,73],         // col 1 (12 rows)
+  [74,75,76,77,78,79,80,81,82,83,84,85,86,87],   // col 2 (14 rows)
+  [88,89,90,91,92,93,94,95,96,97,98,99,100,101]  // col 3 (14 rows)
+];
+
+// ==================== STATE ====================
+let tables = {};       // id -> "available"|"pending"|"reserved"
+let reservations = {}; // id -> {name, phone, guests, note, tableId, createdAt}
+let mode = "user";     // "user"|"admin"
+let userUnlocked = false;
+let selectedTable = null;
+
+function loadState() {
+  try {
+    const t = localStorage.getItem("reserva-tables");
+    const r = localStorage.getItem("reserva-reservations");
+    if (t) tables = JSON.parse(t);
+    else initTables();
+    if (r) reservations = JSON.parse(r);
+  } catch(e) {
+    initTables();
+  }
+}
+
+function initTables() {
+  tables = {};
+  INITIAL_TABLES.forEach(t => { tables[t.id] = "available"; });
+}
+
+function saveState() {
+  localStorage.setItem("reserva-tables", JSON.stringify(tables));
+  localStorage.setItem("reserva-reservations", JSON.stringify(reservations));
+}
+
+// ==================== RENDER ====================
+function render() {
+  renderGrid();
+  renderRight();
+  renderStats();
+  renderAdminPanel();
+  renderHeader();
+}
+
+function renderGrid() {
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+  LEFT_GRID.forEach(row => {
+    const rowDiv = document.createElement("div");
+    rowDiv.className = "grid-row";
+    row.forEach(id => {
+      if (id === null) {
+        const sp = document.createElement("div");
+        sp.className = "table-spacer";
+        rowDiv.appendChild(sp);
+      } else {
+        rowDiv.appendChild(makeCell(id));
+      }
+    });
+    grid.appendChild(rowDiv);
+  });
+}
+
+function renderRight() {
+  const rs = document.getElementById("right-section");
+  rs.innerHTML = "";
+  RIGHT_COLS.forEach(col => {
+    const colDiv = document.createElement("div");
+    colDiv.className = "right-col";
+    col.forEach(id => colDiv.appendChild(makeCell(id)));
+    rs.appendChild(colDiv);
+  });
+}
+
+function makeCell(id) {
+  const status = tables[id] || "available";
+  const div = document.createElement("div");
+  div.className = "table-cell " + status + (selectedTable === id ? " selected" : "");
+  div.textContent = id;
+  div.title = "Mesa " + id + " — " + {available:"Disponível",pending:"Aguardando",reserved:"Reservada"}[status];
+  div.onclick = () => handleTableClick(id);
+  return div;
+}
+
+function renderStats() {
+  const vals = Object.values(tables);
+  document.getElementById("stat-available").textContent = vals.filter(s=>s==="available").length;
+  document.getElementById("stat-pending").textContent   = vals.filter(s=>s==="pending").length;
+  document.getElementById("stat-reserved").textContent  = vals.filter(s=>s==="reserved").length;
+}
+
+function renderHeader() {
+  const isAdmin = mode === "admin";
+  document.getElementById("btn-admin").style.display  = isAdmin ? "none" : "";
+  document.getElementById("btn-logout").style.display = isAdmin ? "" : "none";
+  document.getElementById("admin-badge").style.display = isAdmin ? "" : "none";
+  const pc = Object.keys(reservations).filter(id => tables[id] === "pending").length;
+  const badge = document.getElementById("pending-count-badge");
+  badge.style.display = (isAdmin && pc > 0) ? "" : "none";
+  badge.textContent = pc;
+}
+
+function renderAdminPanel() {
+  const panel = document.getElementById("admin-panel");
+  const list  = document.getElementById("pending-list");
+  if (mode !== "admin") { panel.style.display = "none"; return; }
+  const pending = Object.entries(reservations).filter(([id]) => tables[id] === "pending");
+  if (pending.length === 0) { panel.style.display = "none"; return; }
+  panel.style.display = "";
+  document.getElementById("pending-count").textContent = pending.length;
+  list.innerHTML = "";
+  pending.forEach(([id, res]) => {
+    const item = document.createElement("div");
+    item.className = "pending-item";
+    item.innerHTML = `
+      <div class="pending-info">
+        <span class="mesa-label">Mesa ${id}</span>
+        <span style="color:#ddd;margin-left:10px">${res.name}</span>
+        <span style="color:#999;margin-left:8px;font-size:12px">${res.phone}</span>
+        <span style="color:#aaa;margin-left:8px;font-size:12px">${res.guests} pessoa(s)</span>
+        ${res.note ? `<div class="guest-note">📝 ${res.note}</div>` : ""}
+      </div>
+      <div class="pending-btns">
+        <button class="btn-approve" onclick="adminAction(${id},'approve')">✓ Confirmar</button>
+        <button class="btn-reject"  onclick="adminAction(${id},'reject')">✗ Recusar</button>
+      </div>`;
+    list.appendChild(item);
+  });
+}
+
+// ==================== ACTIONS ====================
+function handleTableClick(id) {
+  const status = tables[id] || "available";
+  if (mode === "user") {
+    if (!userUnlocked) { openUserLogin(); return; }
+    if (status === "available") {
+      selectedTable = id;
+      openForm(false);
+    } else if (status === "pending") {
+      selectedTable = id;
+      openForm(true);
+    } else if (status === "reserved") {
+      const res = reservations[id];
+      if (res) showToast("Mesa " + id + ": " + res.name + " — Reservada ✓", "info");
+    }
+  } else {
+    // admin mode — show detail
+    selectedTable = id;
+    showAdminDetail(id);
+    render();
+  }
+}
+
+function showAdminDetail(id) {
+  const status = tables[id] || "available";
+  if (status === "available") { closeAdminDetail(); return; }
+  const res = reservations[id];
+  const labels = {pending:"Aguardando",reserved:"Reservada"};
+  document.getElementById("detail-title").textContent = "Mesa " + id + " — " + (labels[status] || status);
+  document.getElementById("detail-info1").textContent = res ? "👤 " + res.name + "   📞 " + res.phone : "";
+  document.getElementById("detail-info2").textContent = res ? "👥 " + res.guests + " pessoa(s)" + (res.note ? "  ·  " + res.note : "") : "";
+  document.getElementById("detail-approve").style.display = status === "pending" ? "" : "none";
+  document.getElementById("admin-detail").style.display = "";
+}
+
+function closeAdminDetail() {
+  document.getElementById("admin-detail").style.display = "none";
+  selectedTable = null;
+  render();
+}
+
+function adminApproveSelected() { adminAction(selectedTable, "approve"); closeAdminDetail(); }
+function adminFreeSelected()    { adminAction(selectedTable, "free");    closeAdminDetail(); }
+
+function adminAction(id, action) {
+  if (action === "approve") {
+    tables[id] = "reserved";
+    showToast("Mesa " + id + " confirmada! ✓");
+  } else if (action === "reject" || action === "free") {
+    tables[id] = "available";
+    delete reservations[id];
+    showToast("Mesa " + id + " liberada.", "info");
+  }
+  saveState();
+  render();
+}
+
+// ==================== FORM ====================
+function openForm(isEdit) {
+  const title = document.getElementById("form-title");
+  const btn   = document.getElementById("btn-submit");
+  if (isEdit) {
+    const res = reservations[selectedTable];
+    document.getElementById("f-name").value   = res ? res.name   : "";
+    document.getElementById("f-phone").value  = res ? res.phone  : "";
+    document.getElementById("f-guests").value = res ? res.guests : 1;
+    document.getElementById("f-note").value   = res ? res.note   : "";
+    title.textContent = "✏️ Alterar Reserva — Mesa " + selectedTable;
+    btn.textContent   = "✏️ Alterar Reserva";
+  } else {
+    document.getElementById("f-name").value   = "";
+    document.getElementById("f-phone").value  = "";
+    document.getElementById("f-guests").value = 1;
+    document.getElementById("f-note").value   = "";
+    title.textContent = "🍽️ Reservar Mesa " + selectedTable;
+    btn.textContent   = "✓ Solicitar Reserva";
+  }
+  document.getElementById("form-modal").classList.add("active");
+}
+
+function closeForm() {
+  document.getElementById("form-modal").classList.remove("active");
+  selectedTable = null;
+  render();
+}
+
+function submitReservation() {
+  const name   = document.getElementById("f-name").value.trim();
+  const phone  = document.getElementById("f-phone").value.trim();
+  const guests = document.getElementById("f-guests").value || 1;
+  const note   = document.getElementById("f-note").value.trim();
+
+  if (!name)  { showToast("Informe o Nome do Diretor!", "error"); return; }
+  if (!phone) { showToast("Informe o Telefone / WhatsApp!", "error"); return; }
+  if (!note)  { showToast("Informe o Nome do sócio ou responsável pela mesa!", "error"); return; }
+
+  tables[selectedTable] = "pending";
+  reservations[selectedTable] = { name, phone, guests, note, tableId: selectedTable, createdAt: new Date().toISOString() };
+  saveState();
+  closeForm();
+  showToast("Mesa " + selectedTable + " marcada! Aguarde validação. ✓");
+  render();
+}
+
+// ==================== AUTH ====================
+function openUserLogin()  { document.getElementById("user-login-modal").classList.add("active"); setTimeout(()=>document.getElementById("user-pw").focus(),100); }
+function closeUserLogin() { document.getElementById("user-login-modal").classList.remove("active"); document.getElementById("user-pw").value=""; document.getElementById("user-pw-error").style.display="none"; }
+function loginUser() {
+  const pw = document.getElementById("user-pw").value;
+  if (pw === USER_PASSWORD) {
+    userUnlocked = true;
+    closeUserLogin();
+    showToast("Acesso liberado! Escolha sua mesa 🎉");
+  } else {
+    document.getElementById("user-pw-error").style.display = "";
+    document.getElementById("user-pw").value = "";
+  }
+}
+
+function openAdminLogin()  { document.getElementById("admin-login-modal").classList.add("active"); setTimeout(()=>document.getElementById("admin-pw").focus(),100); }
+function closeAdminLogin() { document.getElementById("admin-login-modal").classList.remove("active"); document.getElementById("admin-pw").value=""; document.getElementById("admin-pw-error").style.display="none"; }
+function loginAdmin() {
+  const pw = document.getElementById("admin-pw").value;
+  if (pw === ADMIN_PASSWORD) {
+    mode = "admin";
+    closeAdminLogin();
+    render();
+    showToast("Modo administrador ativado 🔑");
+  } else {
+    document.getElementById("admin-pw-error").style.display = "";
+    document.getElementById("admin-pw").value = "";
+  }
+}
+
+function logoutAdmin() {
+  mode = "user";
+  selectedTable = null;
+  document.getElementById("admin-detail").style.display = "none";
+  render();
+}
+
+// ==================== TOAST ====================
+let toastTimer = null;
+function showToast(msg, type="success") {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = type;
+  t.style.display = "block";
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.style.display = "none"; }, 3000);
+}
+
+// ==================== INIT ====================
+loadState();
+render();
+</script>
+
+</body>
+</html>
